@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Task Planner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #eef2ff, #fefce8);
+      font-family: 'Inter', sans-serif;
+    }
+    .fade-in {
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
+  <div class="bg-white shadow-2xl rounded-2xl p-8 max-w-xl w-full fade-in border border-gray-100">
+    <h1 class="text-3xl font-extrabold text-center text-indigo-600 mb-6">🧠 Smart Task Planner</h1>
+
+    <label class="block text-gray-700 font-semibold mb-2">🎯 Goal</label>
+    <input id="goalInput" type="text"
+      placeholder="e.g. Launch a product in 2 weeks"
+      class="w-full px-4 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+
+    <label class="block text-gray-700 font-semibold mb-2">⚙️ Mode</label>
+    <select id="modeInput"
+      class="w-full px-4 py-2 mb-6 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+      <option value="auto">Auto (recommended)</option>
+      <option value="local">Local</option>
+      <option value="openai">OpenAI</option>
+    </select>
+
+    <button onclick="generatePlan()"
+      class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+      🚀 Generate Plan
+    </button>
+
+    <div id="loading" class="hidden mt-6 text-center text-gray-500 animate-pulse">Generating plan...</div>
+
+    <div id="outputContainer" class="hidden mt-8 fade-in">
+      <h2 class="text-xl font-bold text-gray-800 mb-3">📋 Generated Plan</h2>
+      <div id="output" class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm overflow-auto max-h-96 whitespace-pre-wrap font-mono"></div>
+    </div>
+  </div>
+
+  <footer class="mt-10 text-gray-500 text-sm">
+    Made with 💡 by Smart Planner AI
+  </footer>
+
+  <script>
+    async function generatePlan() {
+      const goalInput = document.getElementById("goalInput").value.trim();
+      const modeInput = document.getElementById("modeInput").value;
+      const outputContainer = document.getElementById("outputContainer");
+      const output = document.getElementById("output");
+      const loading = document.getElementById("loading");
+
+      if (!goalInput) {
+        alert("Please enter a goal first!");
+        return;
+      }
+
+      outputContainer.classList.add("hidden");
+      loading.classList.remove("hidden");
+      output.textContent = "";
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/generate_plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ goal: goalInput, mode: modeInput })
+        });
+
+        const data = await response.json();
+        loading.classList.add("hidden");
+        outputContainer.classList.remove("hidden");
+        output.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        loading.classList.add("hidden");
+        outputContainer.classList.remove("hidden");
+        output.textContent = "⚠️ Error: " + err;
+      }
+    }
+  </script>
+</body>
+</html>
